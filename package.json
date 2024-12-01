@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "shipping-server.js",
   "dependencies": {
+  "sharetribe-scripts": "^x.x.x" // Replace x.x.x with the appropriate version
+}
     "express": "^4.19.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
