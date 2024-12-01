@@ -1,0 +1,14 @@
+{
+  "name": "card-shipping-server",
+  "version": "1.0.0",
+  "main": "shipping-server.js",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "shippo": "^1.7.1"
+  },
+  "scripts": {
+    "start": "node shipping-server.js"
+  }
+}
