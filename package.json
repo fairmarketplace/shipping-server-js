@@ -3,8 +3,6 @@
   "version": "1.0.0",
   "main": "shipping-server.js",
   "dependencies": {
-  "sharetribe-scripts": "^6.0.2"
-},
     "express": "^4.19.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
@@ -13,3 +11,4 @@
   "scripts": {
     "start": "node shipping-server.js"
   }
+}
