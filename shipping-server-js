@@ -17,14 +17,14 @@ app.use(express.json());
 
 // Define simplified package sizes for trading cards
 const PACKAGE_SIZES = {
-  SINGLE_CARD: {
+    SINGLE_CARD: {
         length: "6",
         width: "4",
         height: "0.1",
-        weight: "0.1", // in lbs
+        weight: "0.1",
         display_name: "Single Card",
         description: "For single cards in top loader",
-        max_value: "100" // Maximum recommended value for this package size
+        max_value: "100"
     },
     SEALED_PRODUCT: {
         length: "12",
@@ -35,7 +35,7 @@ const PACKAGE_SIZES = {
         description: "For Hobby Boxes, Elite Trainer Boxes, or similar items",
         max_value: "500"
     },
- BULK: {
+    BULK: {
         length: "14",
         width: "12",
         height: "8",
@@ -71,7 +71,7 @@ app.get('/api/package-sizes', (req, res) => {
 // Calculate shipping rates
 app.post('/api/get-shipping-rate', async (req, res) => {
     try {
-  const {
+        const {
             package_size,
             seller_zip,
             buyer_zip,
@@ -89,7 +89,7 @@ app.post('/api/get-shipping-rate', async (req, res) => {
         const packageDetails = PACKAGE_SIZES[package_size.toUpperCase()];
         if (!packageDetails) {
             return res.status(400).json({
-               success: false,
+                success: false,
                 error: "Invalid package size"
             });
         }
@@ -107,7 +107,7 @@ app.post('/api/get-shipping-rate', async (req, res) => {
                 country: "US"
             },
             parcels: [{
- length: packageDetails.length,
+                length: packageDetails.length,
                 width: packageDetails.width,
                 height: packageDetails.height,
                 distance_unit: "in",
@@ -125,25 +125,22 @@ app.post('/api/get-shipping-rate', async (req, res) => {
                     currency: "USD"
                 }
             };
-  }
+        }
 
         const shipment = await shippo.shipment.create(shipmentOptions);
 
         // Filter for rates with tracking
-      let rates = shipment.rates;
+        let rates = shipment.rates;
 
         if (!rates || rates.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: "No shipping options available. Please try different par$
+                error: "No shipping options available. Please try different parameters."
             });
         }
 
-        // Log available rates for debugging
-        console.log('Available rates:', rates);
-
         // Sort by price
-  rates = rates.sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount$
+        rates = rates.sort((a, b) => parseFloat(a.amount) - parseFloat(b.amount));
 
         res.json({
             success: true,
@@ -161,7 +158,53 @@ app.post('/api/get-shipping-rate', async (req, res) => {
 
     } catch (error) {
         console.error('Shipping rate error:', error);
-       res.status(500).json({
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Create shipping label
+app.post('/api/create-label', async (req, res) => {
+    try {
+        const {
+            rate_id,
+            seller_email,
+            declared_value
+        } = req.body;
+
+        if (!rate_id || !seller_email || !declared_value) {
+            return res.status(400).json({
+                success: false,
+                error: "Missing required information"
+            });
+        }
+
+        const transaction = await shippo.transaction.create({
+            rate: rate_id,
+            label_file_type: "PDF",
+            async: false
+        });
+
+        if (transaction.status === "SUCCESS") {
+            res.json({
+                success: true,
+                label_url: transaction.label_url,
+                tracking_number: transaction.tracking_number,
+                tracking_url: transaction.tracking_url_provider
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                error: "Failed to create label",
+                details: transaction.messages
+            });
+        }
+
+    } catch (error) {
+        console.error('Label creation error:', error);
+        res.status(500).json({
             success: false,
             error: error.message
         });
